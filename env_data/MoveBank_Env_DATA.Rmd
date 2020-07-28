@@ -3,10 +3,6 @@ title: "MoveBank Env-DATA"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ## Intro
   Script for accessing Movebank [Env-DATA annotation service](https://www.movebank.org/cms/movebank-content/env-data).
   The code is built upon examples from Elie's [ABoVE](https://github.com/ABoVE-AotM/above) and other movebank related tutorials like `Bald Eagle Code Example` by `Mariëlle van Toor`.
@@ -106,10 +102,8 @@ DC2014status <- upload_request(csv_path = grid_path,
 - Result will be kept for 1 week after finished. User will receive email when the task was finished. The status link can show status and user can download from there too.
 
 ```{r 4. download, eval=FALSE}
-# TODO finish this
 result_path <- file.path(task_folder, "data", "DC2014.ndvi.csv")
 download_result(DC2014status, file_path = result_path)
-DC2014.ndvi <- fread(result_path)
 ```
 
 
@@ -117,6 +111,11 @@ DC2014.ndvi <- fread(result_path)
 - The code example I have for backend service only support grid request, which submit a grid csv and get a csv back. The web page support raster result, we will try to add support for raster request after contacting Movebank for documentation.
 
 ```{r 5. plot}
+# we don't want to submit annotation request in every run, so previous result are saved.
+# load result
+result_path <- file.path(task_folder, "data", "DC2014.ndvi.csv")
+DC2014.ndvi <- fread(result_path)
+
 # simplify names and modify table
 names(DC2014.ndvi) <- c("time", "lon", "lat", "height", "ndvi")
 DC2014.ndvi[, `:=`(lat = round(lat, 5), 
