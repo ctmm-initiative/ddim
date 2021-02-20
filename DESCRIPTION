@@ -1,0 +1,18 @@
+Package: DDIM
+Title: Distribution Data Integration Module
+Version: 0.0.0.9000
+Authors@R: as.person(c( "Xianghui Dong <xhdong@umd.edu> [aut, cre]", "C.H. Fleming [ctb]", "M.J. Noonan
+            [ctb]", "J.M. Calabrese [ctb]" ))
+URL: https://github.com/ctmm-initiative/DDIM
+BugReports: https://github.com/ctmm-initiative/DDIM/issues
+Description: What the package does (one paragraph).
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: data.table, ctmm, magrittr, purrr, crayon, glue, lubridate, stringr, RCurl, XML, zip, raster, geosphere, MODISTools
+Remotes: ctmm-initiative/ctmm
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
