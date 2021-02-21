@@ -2,7 +2,7 @@
 % Please edit documentation in R/EnvDATA.R
 \name{to_track_df}
 \alias{to_track_df}
-\title{Convert data frame to Movebank Env-Data track request file}
+\title{Convert data frame to Movebank Env-Data track request format}
 \usage{
 to_track_df(
   df,
@@ -18,13 +18,16 @@ longitude and latitude in WGS84, timestamp in POSIXct or ymd_hms format,
 and height above ellipsoid (in m). If no timezone information exist, it
 will be interpreted as UTC time. If no height above ellipsoid provided it}
 
-\item{time_name}{column name for timestamp}
+\item{time_name}{column name for timestamp. The parameter default values
+matches ctmm telemetry object data.frame, so there is no need to specify
+them with telemtry data.frame.}
 
 \item{long_name}{column name for longitude}
 
 \item{lat_name}{column name for latitude}
 
-\item{height_name}{column name for height above ellipsoid. This column is optional and the name can be left as NA}
+\item{height_name}{column name for height above ellipsoid. This column is
+optional and the name can be left as NA}
 }
 \description{
 Takes a data frame of latitudes, longitudes and times and generates the

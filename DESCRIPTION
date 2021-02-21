@@ -11,7 +11,7 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
-Imports: data.table, ctmm, magrittr, purrr, crayon, glue, lubridate, stringr, RCurl, XML, zip, raster, geosphere, MODISTools
+Imports: data.table(>= 1.11.4), ctmm, magrittr, purrr, crayon, glue, lubridate, stringr, RCurl, XML, zip, raster, geosphere, MODISTools
 Remotes: ctmm-initiative/ctmm
 VignetteBuilder: knitr
 Depends: 
