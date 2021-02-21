@@ -7,11 +7,15 @@
 process_data_folder(tiff_folder)
 }
 \arguments{
-\item{tiff_folder}{}
+\item{tiff_folder}{The path to tiff files}
 }
 \value{
-
+A \code{raster::RasterStack}
 }
 \description{
-Grid request result is in geotiff format by default. The grid could be split in tiles if too big, and each timestamp will have a snapshot. This function will merge split tiles if existed, convert geotiff into \code{raster::raster}, merge multiple snapshots into a \code{raster::RasterStack}, put snapshot name into \code{Z} slot.
+Grid request result is in geotiff format by default. The grid could be split
+in tiles if too big, and each timestamp will have a snapshot. This function
+will merge split tiles if existed, convert geotiff into \code{raster::raster},
+merge multiple snapshots into a \code{raster::RasterStack}, put snapshot name into
+\code{Z} slot.
 }

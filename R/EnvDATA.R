@@ -187,6 +187,7 @@ upload_request <- function(request_type, csv_path, xml_path,
 # exported functions ----
 # functions just generate parameter list. submit functions take para list and create xml, submit xml. user never need to deal with xml, only deal with parameter list.
 # we can assume most track csv will not be ready for use, so we need to start from data.frame anyway. we can put convertion in pipeline so we don't do automatic conversion
+
 ##' Convert data frame to Movebank Env-Data track request format
 ##'
 ##' Takes a data frame of latitudes, longitudes and times and generates the
@@ -239,7 +240,8 @@ to_track_df <- function(df, time_name = "timestamp",
 }
 
 #' @describeIn submit_grid_request Submit Track Annotation Request
-#' @param track_df A data.frame that in EnvData track request format, for example converted from `to_track_df`
+#' @param track_df A data.frame that in EnvData track request format, for
+#'   example converted from `to_track_df`
 #'
 #' @export
 submit_track_request <- function(track_df, para_list, user, password) {
@@ -253,7 +255,8 @@ submit_track_request <- function(track_df, para_list, user, password) {
 #'
 #' @describeIn submit_grid_request Submit Grid Annotation Request
 #' @param para_list Parameter list
-#' @param user Movebank EnvData backend login (not the same as a MoveBank account), which you have to contact the Movebank to obtain
+#' @param user Movebank EnvData backend login (not the same as a MoveBank
+#'   account), which you have to contact the Movebank to obtain
 #' @param password Movebank EnvData backend password
 #'
 #' @return The status url, which can be feed to `download_result`
@@ -265,13 +268,18 @@ submit_grid_request <- function(para_list, user, password) {
 }
 # it should be good if we also download the request xml and save together. also better save the status url.
 # if download success, return csv path for track mode, extracted tiff folder for grid mode
+
 #' Download Annotation Request Result
 #'
-#' Download request result after it's available. It may take some time for the request to be finished.
+#' Download request result after it's available. It may take some time for the
+#' request to be finished.
 #' - For track result, an annotated csv and the request xml will be saved.
-#' - For grid result, the result zip will be downloaded and uncompressed, and the request xml also saved.
+#' - For grid result, the result zip will be downloaded and uncompressed,
+#' and the request xml also saved.
 #'
-#' @param request_status_url The Request status url. `submit_track_request` and `submit_grid_request` will print the url and also return the url. The url can be used to check request status.
+#' @param request_status_url The Request status url. `submit_track_request` and
+#'   `submit_grid_request` will print the url and also return the url. The url
+#'   can be used to check request status.
 #' @param save_folder Where to save the result.
 #'
 #' @export
@@ -332,21 +340,29 @@ download_result <- function(request_status_url, save_folder = "."){
 
 # wrapper for ndvi/evi ----
 # generate parameter list, pipe to submit request.
-#' Title
+
+#' Create Grid Annotation Request from extent Result
 #'
-#' @param data_type
-#' @param ext
-#' @param buffer
-#' @param res_space
-#' @param res_time
-#' @param ...
+#' This is a wrapper function that you can create Annotation request with
+#' minimal input.  The wrapper function can request NDVI or EVI values based on
+#' the `ctmm::extent` result. `ctmm::extent` take a telemetry object or UD
+#' object and return their spatial bounding box and time range.
 #'
-#' @return
+#' @param data_type The environment data to be requested. Currrently only NDVI
+#'   and EVI are supported.
+#' @param ext Return value from `ctmm::extent` applied on telemetry object which
+#'   includes bounding box and time range. If applied to UD only bounding box is
+#'   available, so it's suggested to feed `ctmm::extent` with a list of
+#'   telemetry object and UD object so it will return time range from telemetry
+#'   object and bounding box from the UD object.
+#' @param buffer Increase the bounding box to make it cover the edge area. 0.1
+#'   will extend 10% in each dimension.
+#'
+#' @return request parameter list, which can be feed to `submit_grid_request`.
 #' @export
-#'
-#' @examples
+
 create_envdata_request <- function(data_type = c("NDVI", "EVI"), ext,
-                                   buffer = 0, res_space = 1, res_time = 1, ...) {
+                                   buffer = 0) {
   # select product ----
   TILE_RESOLUTION_LIMIT <- 2000
   VARIABLE_DT[, row_no := .I]
@@ -451,9 +467,14 @@ create_envdata_request <- function(data_type = c("NDVI", "EVI"), ext,
 # let's make it simple, each request only return one product. so only one folder after decompress. we can continue after the decompress
 # assume single subfolder. also assume tiff. we can feed download function result to this function.
 # mosaic can comput overlap cells. merge use one layer to override
+
 #' Convert geotiff Result into Raster Stack
 #'
-#' Grid request result is in geotiff format by default. The grid could be split in tiles if too big, and each timestamp will have a snapshot. This function will merge split tiles if existed, convert geotiff into `raster::raster`, merge multiple snapshots into a `raster::RasterStack`, put snapshot name into `Z` slot.
+#' Grid request result is in geotiff format by default. The grid could be split
+#' in tiles if too big, and each timestamp will have a snapshot. This function
+#' will merge split tiles if existed, convert geotiff into `raster::raster`,
+#' merge multiple snapshots into a `raster::RasterStack`, put snapshot name into
+#' `Z` slot.
 #'
 #' @param tiff_folder The path to tiff files
 #'

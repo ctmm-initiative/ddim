@@ -2,23 +2,29 @@
 % Please edit documentation in R/EnvDATA.R
 \name{create_envdata_request}
 \alias{create_envdata_request}
-\title{Title}
+\title{Create Grid Annotation Request from extent Result}
 \usage{
-create_envdata_request(
-  data_type = c("NDVI", "EVI"),
-  ext,
-  buffer = 0,
-  res_space = 1,
-  res_time = 1,
-  ...
-)
+create_envdata_request(data_type = c("NDVI", "EVI"), ext, buffer = 0)
 }
 \arguments{
-\item{...}{}
+\item{data_type}{The environment data to be requested. Currrently only NDVI
+and EVI are supported.}
+
+\item{ext}{Return value from \code{ctmm::extent} applied on telemetry object which
+includes bounding box and time range. If applied to UD only bounding box is
+available, so it's suggested to feed \code{ctmm::extent} with a list of
+telemetry object and UD object so it will return time range from telemetry
+object and bounding box from the UD object.}
+
+\item{buffer}{Increase the bounding box to make it cover the edge area. 0.1
+will extend 10\% in each dimension.}
 }
 \value{
-
+request parameter list, which can be feed to \code{submit_grid_request}.
 }
 \description{
-Title
+This is a wrapper function that you can create Annotation request with
+minimal input.  The wrapper function can request NDVI or EVI values based on
+the \code{ctmm::extent} result. \code{ctmm::extent} take a telemetry object or UD
+object and return their spatial bounding box and time range.
 }

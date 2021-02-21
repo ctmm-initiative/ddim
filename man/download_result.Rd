@@ -7,14 +7,18 @@
 download_result(request_status_url, save_folder = ".")
 }
 \arguments{
-\item{request_status_url}{The Request status url. \code{submit_track_request} and \code{submit_grid_request} will print the url and also return the url. The url can be used to check request status.}
+\item{request_status_url}{The Request status url. \code{submit_track_request} and
+\code{submit_grid_request} will print the url and also return the url. The url
+can be used to check request status.}
 
 \item{save_folder}{Where to save the result.}
 }
 \description{
-Download request result after it's available. It may take some time for the request to be finished.
+Download request result after it's available. It may take some time for the
+request to be finished.
 \itemize{
 \item For track result, an annotated csv and the request xml will be saved.
-\item For grid result, the result zip will be downloaded and uncompressed, and the request xml also saved.
+\item For grid result, the result zip will be downloaded and uncompressed,
+and the request xml also saved.
 }
 }

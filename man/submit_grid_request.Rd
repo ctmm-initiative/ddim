@@ -10,11 +10,13 @@ submit_track_request(track_df, para_list, user, password)
 submit_grid_request(para_list, user, password)
 }
 \arguments{
-\item{track_df}{A data.frame that in EnvData track request format, for example converted from \code{to_track_df}}
+\item{track_df}{A data.frame that in EnvData track request format, for
+example converted from \code{to_track_df}}
 
 \item{para_list}{Parameter list}
 
-\item{user}{Movebank EnvData backend login (not the same as a MoveBank account), which you have to contact the Movebank to obtain}
+\item{user}{Movebank EnvData backend login (not the same as a MoveBank
+account), which you have to contact the Movebank to obtain}
 
 \item{password}{Movebank EnvData backend password}
 }
