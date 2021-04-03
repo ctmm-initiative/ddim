@@ -1,4 +1,4 @@
-# DDIM
+# ddim
 Distribution Data Integration Module
 
 ## Movebank Env-DATA 

@@ -1,10 +1,10 @@
 # hold package help and package level import. No need to repeat self, so only include package repo and package website.
 #'
 #'
-#' - [github repo](https://github.com/ctmm-initiative/DDIM)
+#' - [github repo](https://github.com/ctmm-initiative/ddim)
 #'
 #' @docType package
-#' @name DDIM
+#' @name ddim
 #' @import ctmm
 #' @import data.table
 NULL

@@ -1,4 +1,4 @@
-Package: DDIM
+Package: ddim
 Title: Distribution Data Integration Module
 Version: 0.0.0.9000
 Authors@R: as.person(c( "Xianghui Dong <xhdong@umd.edu> [aut, cre]", "C.H. Fleming [ctb]", "M.J. Noonan
