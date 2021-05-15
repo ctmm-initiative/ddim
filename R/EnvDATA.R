@@ -365,7 +365,6 @@ create_envdata_request <- function(data_type = c("NDVI", "EVI"), ext,
                                    buffer = 0) {
   # select product ----
   TILE_RESOLUTION_LIMIT <- 2000
-  VARIABLE_DT[, row_no := .I]
   para_list_grid <- list()
   # first select a product, variable. could be multiple variables. usually we can have multiple variables under same product in one request. So first select one product, then select variables.
   # we seemed need to use different color map for different variable. so each request need to based on single variable. multi request doesn't have more burden for system unless we need to upload multiple times. it's possible we want to get multiple variables if they are similar enough, then we can merge them with a policy (if most are same and only different in variable name)
