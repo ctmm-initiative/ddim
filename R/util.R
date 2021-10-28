@@ -22,7 +22,8 @@ log_msg <- function(level, msg, detail = "") {
     if (length(detail) > 1 || detail != "") {
       detail <- stringr::str_c("\n\t", detail)
     }
-    cat(LOG_colors[[level]](glue("[{level}]:")),
+    # each level is a crayon color which is a function
+    cat(LOG_colors[[level]](glue::glue("[{level}]:")),
         LOG_colors[[level]](msg),
         LOG_colors$detail(detail), "\n")
   }
