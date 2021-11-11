@@ -4,141 +4,87 @@ output: html_document
 ---
 
 ## Intro
-  Script for accessing Movebank [Env-DATA annotation service](https://www.movebank.org/cms/movebank-content/env-data).
-  The code is built upon examples from Elie's [ABoVE](https://github.com/ABoVE-AotM/above) and other movebank related tutorials like `Bald Eagle Code Example` by `Mariëlle van Toor`.
+  ddim package provided convenient helper functions for accessing Movebank [Env-DATA annotation service](https://www.movebank.org/cms/movebank-content/env-data) with script. 
+  
+  The code took reference from Elie's [ABoVE](https://github.com/ABoVE-AotM/above) and other movebank related tutorials like `Bald Eagle Code Example` by `Mariëlle van Toor`.
+  
+  We assume you already have a Env-Data backend account and saved in R environment.
+  
+```{r setup,eval=FALSE}
+if (!require("remotes")) install.packages("remotes")
+remotes::install_github("ctmm-initiative/ddim")
 
-## Script
-
-```{r setup}
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(purrr, stringr, lubridate, data.table, glue, XML, RCurl, ggplot2, maps)
-# path for these tasks
+pacman::p_load(purrr, stringr, lubridate, data.table, glue, XML, RCurl)
+# we need a folder to save the data and temporary files. A sub folder is created on working folder
 task_folder <- "env_data"
-source(file.path(task_folder, "R", "EnvDATA.R"))
+dir.create(task_folder)
+
+# save your account infor in R environment like following
+file.edit("~/.Renviron")
+# movebank_envdata_user = "user name"
+# movebank_envdata_pass = "password"
+# refresh environement after saving 
+readRenviron("~/.Renviron")
 ```
 
+## Workflow
+  Env-DATA Track Annotation Service can [annotate tracking data or a gridded area](https://www.movebank.org/cms/movebank-content/env-data-track-annotation).
 
-### 1. Creating the data file
-
-The data file has to be a text csv with several constraints on the formatting:
-- The columns must be titled: timestamp,location-long,location-lat,height-above-ellipsoid
-- The time stamps MUST look like this: 2007-04-20 0:00:00.000. They will be interpreted as UTC
-- Latitude and Longitude coordinates are in WGS84
-- Height above ellipsoid is in m.
-- Null values should be left blank.
-You will get errors if you use capital letters, spaces, quotations, or leave out the decimal seconds in the timestamps.
-
-- [] column title become location.long after data.frame make.names? which one?
-- all the dateframe function do is set names and conver time. in most case we should have data in dataframe, just need to make sure the name mapping, then convert a data frame directly. take a data frame and mapping vector.
-  a name vector is easier to write, but need to make sure about order. no need to spend too much time on this now.
-
-- grid is lon/lat/timestamp vector combination. give range of each one.
-
-```{r 1. create data file}
+### track request
+  With tracking data request, you upload a csv which specified location and time to be annotated.
+  
+  There are some specific requirements for the tracking data. Function `to_track_df` will take a data frame of latitudes, longitudes and times and generates the data file. See function help for details.
+  
+  You can build a specific request by creating a parameter list, which will be similar to the [track annotation page form](http://www.bioinfo.mpg.de/orn-gateway/submit-track.jsp).
+```{r track request,eval=FALSE}
 library(ctmm)
+library(data.table)
+library(purrr)
+library(ddim)
 
-# track annotation
 data(buffalo)
-df <- data.frame(buffalo[[1]])
-existing_names <- c("timestamp", "longitude", "latitude")
-dt <- to_env_dataframe(df, existing_names)
 
-# grid annotation
-lats <- seq(38.8, 39.0, length = 40)
-lons <- seq(-77.12, -76.91, length = 40)
-# times need to be POSIXct, not Date
-start <- ymd_hms("2014-01-01 0:00:00")
-finish <- ymd_hms("2014-12-31 0:00:00")
-timestep <- ddays(20)
-times <- seq(start, finish, by = timestep)
-test_grid <- create_data_grid(lats, lons, times)
-grid_path <- file.path(task_folder, "data", "DC2014grid.csv")
-fwrite(test_grid, grid_path)
+dt <- buffalo[[1]] %>% data.frame %>% to_track_df
+# create request by specifying details
+para_list_track <- list(type_name = "modis-land/MOD13A1.006",
+                        variable_names = c("500m 16 days NDVI", "500m 16 days NIR reflectance"),
+                        variable_labels = c("NDVI", "reflectance"),
+                        interpolation_method = "nearest-neighbour",
+                        spatial_distance_function = "euclidean")
+ddim:::complete_parameters("track", para_list_track)
+submit_track_request(dt,
+                     para_list_track,
+                     user = Sys.getenv("movebank_envdata_user"),
+                     password = Sys.getenv("movebank_envdata_pass"))
+
+```
+  A browser window of request status will be opened after request was submitted. please save the url as this is the only way to retrieve result later. The url is also printed in R console.
+  
+### grid request
+  Alternatively, you can request [annotation on a gridded area](http://www.bioinfo.mpg.de/orn-gateway/submit-grid.jsp). ddim can start from a `ctmm` telemetry object (be it location data frame or home range object), build a grid within the object bounding box. We have some helper functions to make ndvi and evi request extremely simple, all parameters that can be inferred or having default value are covered under the hood.
+  
+```{r grid request,eval=FALSE}
+data("buffalo")
+tele <- buffalo
+create_envdata_request("NDVI", extent(tele), buffer = 0.1) %>% 
+  submit_grid_request(user = Sys.getenv("movebank_envdata_user"),
+                      password = Sys.getenv("movebank_envdata_pass"))
+```
+  
+### download result
+  After some time, you can revisit the request status url, if the status is available, you can download the result using the status url as parameter. Result will be downloaded and automatically uncompressed into a folder.
+```{r download result,eval=FALSE}
+# result is saved to current folder by default. You will need to change parameter to your status url
+download_result("http://www.bioinfo.mpg.de/orn-gateway/status.jsp?access-key=2682055319626802928")
 ```
 
-
-### 2. Creating the XML request file
-- the request_name is just a name you come up with
-- type_name comes from the [list of available services](http://www.bioinfo.mpg.de/orn-gateway/services2.jsp). They must be entered exactly as seen with no spaces. Here we’re using the MODIS land 13AQ1 products.
-  - variable_name is the specific data we are interested in, inside of the relevant folder
-- [interpolation_type](https://www.movebank.org/node/6400). Basically - if there are potential gaps (as in MODIS) the “inverse-distance-weighted” is your best bet. Other options are “bilinear” and “nearest-neighbor”.
-- dist_func_spatial is the function used for distance computation … the “geodetic” default is probably generally fine.
-- email is the email address that a notification will be sent to you
-- [] verify the type_name and variable_name. These can change so better verify before sending request, otherwise request will fail.
-  can be an option, default on, can be turned off for faster if user want. use an options value, which should be valid for one session but reset for next. 
-  options(check_variable = TRUE)
-  options("check_variable")
-- [] current this is just for grid. change name to match it
-  - should support multiple variables in one request
-  - support output format
-    - split tiles
-```{r 2. create request file}
-request_path <- file.path(task_folder, "data", "DC2014request.xml")
-create_request(request_name = "DC2014request-3",
-               type_name = "modis-land/MOD13A1.006", 
-               variable_name =   "500m 16 days NDVI",  
-               interpolation_type = "inverse-distance-weighted",
-               dist_func_spatial = "geodetic",
-               email = "xhdong@umd.edu",
-               save_to_path = request_path)
+### combine result to stack
+  Result is saved in raster format by default, and you can combine the multiple snapshots result into a raster stack easily.
+```{r result to stack,eval=FALSE}
+# assuming this is your uncompressed result folder created by download_result
+tiff_folder <- "data/569057 EVI tiff/250m 16 days EVI"
+res_stack <- process_data_folder(tiff_folder)
+plot(res_stack@layers[[1]])
 ```
-
-
-### 3. Upload the data and request
-
-```{r 3. upload, eval=FALSE}
-status_link <- file.path(task_folder, "data", "DCstatus.url")
-DC2014status <- upload_request(csv_path = grid_path, 
-                     xml_path = request_path,
-                     login = Sys.getenv("movebank_envdata_user"), 
-                     password = Sys.getenv("movebank_envdata_pass"), 
-                     link_path = status_link)
-# save for development
-# saveRDS(DC2014status, file = file.path(task_folder, "data", "DC2014status.rds"))
-```
-
-
-### 4. Downloading the annotated data
-- Result will be kept for 1 week after finished. User will receive email when the task was finished. The status link can show status and user can download from there too.
-
-```{r 4. download, eval=FALSE}
-result_path <- file.path(task_folder, "data", "DC2014.ndvi.csv")
-download_result(DC2014status, file_path = result_path)
-```
-
-
-### 5. Visualizing
-- The code example I have for backend service only support grid request, which submit a grid csv and get a csv back. The web page support raster result, we will try to add support for raster request after contacting Movebank for documentation.
-
-```{r 5. plot}
-# we don't want to submit annotation request in every run, so previous result are saved.
-# load result
-result_path <- file.path(task_folder, "data", "DC2014.ndvi.csv")
-DC2014.ndvi <- fread(result_path)
-
-# simplify names and modify table
-names(DC2014.ndvi) <- c("time", "lon", "lat", "height", "ndvi")
-DC2014.ndvi[, `:=`(lat = round(lat, 5), 
-                   lon = round(lon, 5), 
-                   day = as.Date(DC2014.ndvi$time))]
-
-                            
-# set range and breakes
-ndvi.range <- range(DC2014.ndvi$ndvi)
-breaks <- seq(-.2, 1, length=21)
-times <- unique(DC2014.ndvi$time)
-
-lats <- unique(DC2014.ndvi$lat) %>% sort
-lons <- unique(DC2014.ndvi$lon) %>% sort
-par(mar = c(0,0,0,0), mfrow = c(4,13), oma = c(2,2,2,2))
-for(i in 1:length(times[-1])){ #for each distinct time
-  ndvi.today <- subset(DC2014.ndvi, time == times[i]) #ndvi.today = the NDVI for that time
-  M.ndvi.today <- t(matrix(ndvi.today$ndvi, nrow = length(lats)))
-  plot.new(); plot.window(xlim = range(lons), ylim = range(lats))
-  maps::map("world", xlim = range(lons), ylim = range(lats), fill=TRUE, col="grey", add=TRUE)
-  image(lons, lats, M.ndvi.today, col=topo.colors(20, alpha = 0.6), add=TRUE, breaks = breaks) 
-    mtext(side = 3, as.Date(times[i]), line = -1, cex=0.8)
-}
-
-```  
   
